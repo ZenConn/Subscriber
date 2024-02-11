@@ -10,7 +10,7 @@ it('Connection::constructor should assign the options', () => {
         secret: process.env.SECRET as string,
     });
 
-    expect(connection.options.authorization).toBe(process.env.authorization)
+    expect(connection.options.authorization).toBe(process.env.TOKEN)
     expect(connection.options.address).toBe(process.env.ADDRESS)
     expect(connection.options.port).toBe(Number.parseInt(process.env.PORT as string))
     expect(connection.options.secure).toBe(true)
