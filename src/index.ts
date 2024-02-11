@@ -19,7 +19,7 @@ import 'dotenv/config'
 
     const instance = await connection.connect();
 
-    instance.on((message: Object) => { // "*"
+    instance.on((message: Object) => {
         console.log("Realm:", message);
     });
 

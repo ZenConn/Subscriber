@@ -37,6 +37,6 @@ export class Connection {
             console.log("Connection::connect PENDING")
         }
 
-        return await Instance.make(this.options, this.server); // Promise<Instance>
+        return await Instance.make(this.options, this.server);
     }
 }
