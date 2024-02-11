@@ -19,7 +19,8 @@ jobs:
       - run: npm run build
       - run: npm run test
         env:
-          TOKEN: ${{ secrets.TEST_TOKEN }}
+          ADMIN_TOKEN: ${{ secrets.TEST_ADMIN_TOKEN }}
+          USER_TOKEN: ${{ secrets.TEST_USER_TOKEN }}
           ADDRESS: ${{ secrets.TEST_ADDRESS }}
           PORT: ${{ secrets.TEST_PORT }}
           SECURE: true
