@@ -1,6 +1,8 @@
 import WebSocket from "ws";
 import { ConnectionOptions, ServerOptions, SessionOptions } from "./types";
-import { Channel } from "./channels";
+import { Channel } from "./types";
+import {PrivateChannel, PublicChannel} from "./channels";
+import {Encrypt} from "./encrypt";
 
 export class Instance {
     options: ConnectionOptions;
@@ -44,7 +46,7 @@ export class Instance {
         this.socket.send(JSON.stringify(message));
     }
 
-    subscribe(name: string, token: string = "") {
+    subscribe(name: string) {
         if (!this.connected) {
             throw new Error("Connection isn't open")
         }
@@ -53,22 +55,57 @@ export class Instance {
             throw new Error("Channel is already subscribed");
         }
 
-        const channel = new Channel(name);
+        const channel = new PublicChannel(name);
         this.channels.push(channel);
 
         if (this.options.debug) {
             console.log(`Instance::subscribe PENDING ID=${this.session.id} CHANNEL=${name}`);
         }
 
-        this.send({
-            type: "subscribe",
-            channel: name,
-            token: token,
-        })
-
-        return new Promise<Channel>((resolve, reject) => {
+        return new Promise<PublicChannel>((resolve, reject) => {
             channel.resolve = resolve;
             channel.reject = reject;
+
+            this.send({
+                type: "subscribe",
+                channel: name,
+            })
+        });
+    }
+
+    private(name: string, token: string = "") {
+        if (!this.connected) {
+            throw new Error("Connection isn't open")
+        }
+
+        if (this.options.secret) {
+            token = Encrypt.make(this.options.secret, `${this.session.id}@private.${name}`)
+        } else {
+            if (token == "") {
+                throw new Error("Token isn't assigned")
+            }
+        }
+
+        if (this.channels.some((item: Channel) => item.name === name)) {
+            throw new Error("Channel is already subscribed");
+        }
+
+        const channel = new PrivateChannel(`private.${name}`, token);
+        this.channels.push(channel);
+
+        if (this.options.debug) {
+            console.log(`Instance::subscribe PENDING ID=${this.session.id} CHANNEL=private.${name}`);
+        }
+
+        return new Promise<PrivateChannel>((resolve, reject) => {
+            channel.resolve = resolve;
+            channel.reject = reject;
+
+            this.send({
+                type: "subscribe",
+                channel: `private.${name}`,
+                token: token,
+            })
         });
     }
 
@@ -123,7 +160,7 @@ export class Instance {
                                 const index = instance.channels.findIndex((item: Channel) => item.name == object.channel);
                                 const channel = instance.channels[index];
                                 if (options.debug) {
-                                    console.log(`Channel::on RECEIVED ID=${session.id} CHANNEL=${object.channel} DATA=${message.toString()}`)
+                                    console.log(`Channel::${object.channel} RECEIVED ID=${session.id} DATA=${message.toString()}`)
                                 }
                                 channel.reactor(object);
                             }

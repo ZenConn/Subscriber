@@ -8,7 +8,7 @@ export class Connection {
     constructor(options: ConnectionOptions) {
         this.options = options;
         this.server = {
-            protocol: this.options.secure ? `wss` : `ws`,
+            protocol: this.options.secure ? `wss://` : `ws://`,
             address: this.options.address + ":" + this.options.port,
         }
         if (this.options.debug) {
@@ -32,9 +32,6 @@ export class Connection {
         if (!this.options.secure) {
             throw new Error("Attribute secure in options is required")
         }
-
-        this.server.protocol = this.options.secure ? `wss://` : `ws://`;
-        this.server.address = this.options.address + ":" + this.options.port;
 
         if (this.options.debug) {
             console.log("Connection::connect PENDING")
