@@ -1,4 +1,5 @@
-import {Connection} from "./connection";
+import { Connection } from "./connection";
+import 'dotenv/config'
 
 it('[Administrator] Connection::constructor should assign the options', async () => {
     const connection = new Connection({
