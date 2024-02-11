@@ -18,7 +18,7 @@ it('[Administrator] Connection::constructor should assign the options', async ()
     expect(connection.options.secret).toBe(process.env.SECRET)
 
     const instance = await connection.connect()
-    instance.disconnect();
+    await instance.disconnect();
 });
 
 it('[User] Connection::constructor should assign the options', async () => {
@@ -34,5 +34,5 @@ it('[User] Connection::constructor should assign the options', async () => {
     expect(connection.options.authorization).toBe(process.env.CLIENT_TOKEN)
 
     const instance = await connection.connect()
-    instance.disconnect();
+    await instance.disconnect();
 });
