@@ -16,6 +16,7 @@ export class Instance {
     channels: Array<Channel> = [];
 
     reactor: Function = (message: Object) => {};
+    close: Function = (message: Object) => {};
 
     constructor(options: ConnectionOptions, server: ServerOptions, session: SessionOptions, socket: WebSocket) {
         this.options = options;
@@ -28,11 +29,14 @@ export class Instance {
         return this.socket.readyState == WebSocket.OPEN
     }
 
-    disconnect() {
+    async disconnect() {
         if (this.options.debug) {
             console.log("Instance::disconnect PENDING");
         }
-        this.socket.close();
+        return new Promise<Instance>((resolve, reject) => {
+            this.socket.close();
+            this.close = resolve;
+        });
     }
 
     on(reactor: Function) {
@@ -174,6 +178,7 @@ export class Instance {
                     if (options.debug) {
                         console.log("Instance::disconnect OK");
                     }
+                    instance.close();
                 })
             } catch (e: any) {
                 reject()
