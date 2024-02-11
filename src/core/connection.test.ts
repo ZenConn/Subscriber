@@ -23,7 +23,7 @@ it('[Administrator] Connection::constructor should assign the options', async ()
 
 it('[User] Connection::constructor should assign the options', async () => {
     const connection = new Connection({
-        authorization: process.env.USER_TOKEN as string,
+        authorization: process.env.CLIENT_TOKEN as string,
         address: process.env.ADDRESS as string,
         port: Number.parseInt(process.env.PORT as string),
         secure: true,
@@ -31,7 +31,7 @@ it('[User] Connection::constructor should assign the options', async () => {
         secret: process.env.SECRET as string,
     });
 
-    expect(connection.options.authorization).toBe(process.env.USER_TOKEN)
+    expect(connection.options.authorization).toBe(process.env.CLIENT_TOKEN)
 
     const instance = await connection.connect()
     instance.disconnect();

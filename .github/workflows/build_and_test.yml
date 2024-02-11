@@ -20,7 +20,7 @@ jobs:
       - run: npm run test
         env:
           ADMIN_TOKEN: ${{ secrets.TEST_ADMIN_TOKEN }}
-          USER_TOKEN: ${{ secrets.TEST_USER_TOKEN }}
+          CLIENT_TOKEN: ${{ secrets.TEST_CLIENT_TOKEN }}
           ADDRESS: ${{ secrets.TEST_ADDRESS }}
           PORT: ${{ secrets.TEST_PORT }}
           SECURE: true
