@@ -3,7 +3,7 @@ import 'dotenv/config'
 
 (async () => {
     const connection = new Connection({
-        authorization: process.env.TOKEN as string,
+        authorization: process.env.ADMIN_TOKEN as string,
         address: process.env.ADDRESS as string,
         port: Number.parseInt(process.env.PORT as string),
         secure: process.env.SECURE as string == "true",
@@ -29,8 +29,9 @@ import 'dotenv/config'
     })
 
     const invoices = await instance.private("invoices");
-    invoices.on((message: Object) => {
-        console.log("Data:", message);
-    })
+    const invoices2 = await instance.private("invoices");
+    // invoices.on((message: Object) => {
+    //     console.log("Data:", message);
+    // })
     // instance.disconnect();
 })()

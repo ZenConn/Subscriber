@@ -34,8 +34,8 @@ export class Instance {
             console.log("Instance::disconnect PENDING");
         }
         return new Promise<Instance>((resolve, reject) => {
-            this.socket.close();
             this.close = resolve;
+            this.socket.close();
         });
     }
 
@@ -55,7 +55,7 @@ export class Instance {
             throw new Error("Connection isn't open")
         }
 
-        if (this.channels.some((item: Channel) => item.name === name)) {
+        if (this.channels.some((item: Channel) => item.name === `name`)) {
             throw new Error("Channel is already subscribed");
         }
 
@@ -90,7 +90,7 @@ export class Instance {
             }
         }
 
-        if (this.channels.some((item: Channel) => item.name === name)) {
+        if (this.channels.some((item: Channel) => item.name === `private.${name}`)) {
             throw new Error("Channel is already subscribed");
         }
 
