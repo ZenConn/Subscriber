@@ -1,8 +1,8 @@
 import WebSocket from "ws";
 import { ConnectionOptions, ServerOptions, SessionOptions } from "./types";
-import { Channel } from "./types";
-import {PrivateChannel, PublicChannel} from "./channels";
-import {Encrypt} from "./encrypt";
+import { Channel, Broadcast } from "./types";
+import { PrivateChannel, PublicChannel } from "./channels";
+import { Encrypt } from "./encrypt";
 
 export class Instance {
     options: ConnectionOptions;
@@ -17,6 +17,8 @@ export class Instance {
 
     reactor: Function = (message: Object) => {};
     close: Function = (message: Object) => {};
+    resolve: Function = (message: Object) => {};
+    reject: Function = (message: Object) => {};
 
     constructor(options: ConnectionOptions, server: ServerOptions, session: SessionOptions, socket: WebSocket) {
         this.options = options;
@@ -43,10 +45,29 @@ export class Instance {
         this.reactor = reactor;
     }
 
-    send(message: Object) {
+    broadcast(data: Object, channel?: string) {
+        return new Promise<Object>((resolve, reject) => {
+            this.resolve = resolve;
+            this.reject = reject;
+            this.send({
+                type: "broadcast",
+                channel: "*",
+                data: data
+            })
+        });
+    }
+
+    send(message: Broadcast) {
         if (!this.connected) {
             throw new Error("Connection isn't open")
         }
+
+        if (this.options.debug) {
+            if (message.hasOwnProperty("channel")) {
+                console.log(`Instance::received SEND ID=${this.session.id} CHANNEL=${message.channel}`)
+            }
+        }
+
         this.socket.send(JSON.stringify(message));
     }
 
@@ -59,7 +80,7 @@ export class Instance {
             throw new Error("Channel is already subscribed");
         }
 
-        const channel = new PublicChannel(name);
+        const channel = new PublicChannel(name, this);
         this.channels.push(channel);
 
         if (this.options.debug) {
@@ -94,7 +115,7 @@ export class Instance {
             throw new Error("Channel is already subscribed");
         }
 
-        const channel = new PrivateChannel(`private.${name}`, token);
+        const channel = new PrivateChannel(`private.${name}`, token, this);
         this.channels.push(channel);
 
         if (this.options.debug) {
@@ -141,14 +162,28 @@ export class Instance {
             instance.socket.on("message", (message: string) => {
                 const object = JSON.parse(message);
                 switch (object.type) {
-                    case "accepted":
+                    case "accepted": {
                         if (options.debug) {
                             console.log(`Connection::connect ACCEPTED ID=${object.data}`)
                         }
                         session.id = object.data;
                         resolve(instance);
                         break;
-                    case "subscribed":
+                    }
+                    case "received": {
+                        if (object.channel == "*") {
+                            instance.resolve(object.count);
+                        } else {
+                            const index = instance.channels.findIndex((item: Channel) => item.name == object.channel);
+                            const channel = instance.channels[index];
+                            if (options.debug) {
+                                console.log(`Instance::received SUBSCRIBED ID=${session.id} CHANNEL=${object.channel}`)
+                            }
+                            channel.resolve(object.count);
+                        }
+                        break;
+                    }
+                    case "subscribed": {
                         const index = instance.channels.findIndex((item: Channel) => item.name == object.channel);
                         const channel = instance.channels[index];
                         if (options.debug) {
@@ -156,7 +191,17 @@ export class Instance {
                         }
                         channel.resolve(channel);
                         break;
-                    case "event":
+                    }
+                    case "unauthorized": {
+                        const index = instance.channels.findIndex((item: Channel) => item.name == object.channel);
+                        const channel = instance.channels[index];
+                        if (options.debug) {
+                            console.log(`Instance::subscribed SUBSCRIBED ID=${session.id} CHANNEL=${object.channel}`)
+                        }
+                        channel.reject(new Error('Unauthorized'));
+                        break;
+                    }
+                    case "event": {
                         if (object.channel == "*") {
                             instance.reactor(object);
                         } else {
@@ -165,8 +210,16 @@ export class Instance {
                             channel.reactor(object);
                         }
                         break;
-                    default:
-                        break;
+                    }
+                    case "error": {
+                        if (object.channel == "*") {
+                            instance.reject(object.errors)
+                        } else {
+                            const index = instance.channels.findIndex((item: Channel) => item.name == object.channel);
+                            const channel = instance.channels[index];
+                            channel.reject(object.errors)
+                        }
+                    }
                 }
             })
 

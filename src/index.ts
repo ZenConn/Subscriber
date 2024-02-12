@@ -28,16 +28,20 @@ import 'dotenv/config'
         console.log("Datum:", message);
     })
 
-    instance.send({
-        type: "broadcast",
-        channel: "*",
-        data: "HEELLO"
-    })
-
-    // const invoices = await instance.private("invoices");
+    try {
+        const invoices = await instance.private("invoices");
+        instance.send({
+            channel: "private.invoices",
+            type: "broadcast"
+        })
+        const response = await invoices.broadcast(["a", "b"]);
+        console.log("RECEIVERS", response)
+    } catch (e) {
+        console.error("ERROR", e);
+    }
     // const invoices2 = await instance.private("invoices");
     // invoices.on((message: Object) => {
     //     console.log("Data:", message);
     // })
-    // instance.disconnect();
+    await instance.disconnect();
 })()
