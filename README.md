@@ -53,7 +53,6 @@ If `secret` isn't passed as option then:
 
 ```js
 const channel = "notifications";
-const id = instance.session.id;
 const input = `${instance.session.id}@private.${channel}`;
 const secret = "secret";
 const hash = Encrypt.make(secret, input);
