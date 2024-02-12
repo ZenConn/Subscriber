@@ -37,3 +37,61 @@ it('[User] Connection::constructor should assign the options', async () => {
     const instance = await connection.connect()
     await instance.disconnect();
 });
+
+it("[SDK] Connection::constructor doesn't includes all the options", async () => {
+    try {
+        const connection = new Connection({
+            authorization: undefined,
+            address: undefined,
+            port: undefined,
+            secure: undefined,
+            debug: undefined,
+        });
+
+        await connection.connect();
+    } catch (e:any) {
+        expect(e.message).toBe("Attribute authorization in options is required.")
+    }
+
+    try {
+        const connection = new Connection({
+            authorization: "abc",
+            address: undefined,
+            port: undefined,
+            secure: undefined,
+            debug: undefined,
+        });
+
+        await connection.connect();
+    } catch (e:any) {
+        expect(e.message).toBe("Attribute address in options is required")
+    }
+
+    try {
+        const connection = new Connection({
+            authorization: "abc",
+            address: "abc",
+            port: undefined,
+            secure: undefined,
+            debug: undefined,
+        });
+
+        await connection.connect();
+    } catch (e:any) {
+        expect(e.message).toBe("Attribute port in options is required")
+    }
+
+    try {
+        const connection = new Connection({
+            authorization: "abc",
+            address: "abc",
+            port: 20000,
+            secure: undefined,
+            debug: undefined,
+        });
+
+        await connection.connect();
+    } catch (e:any) {
+        expect(e.message).toBe("Attribute secure in options is required")
+    }
+});
