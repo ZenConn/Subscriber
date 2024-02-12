@@ -54,7 +54,10 @@ it("[SDK] Instance::send should throw exception on send when isn't connected", a
     await instance.disconnect();
 
     try {
-        instance.send({});
+        instance.send({
+            type: "testing",
+            channel: "dev"
+        });
     } catch (e:any) {
         expect(e.message).toBe("Connection isn't open")
     }
@@ -220,44 +223,129 @@ it("[SDK] Instance::on_message should react", async () => {
     });
 
     instance_b.on((message: Object) => {
-        // console.log(message);
     });
 
-    const notifications = await instance_b.private("notifications");
+    const notifications_b = await instance_b.private("notifications");
+    const notifications = await instance.private("notifications");
 
     notifications.on((message: string) => {
-        // console.log(message);
     })
 
-    instance.send({
-        type: "broadcast",
-        channel: "private.notifications",
+    await notifications.broadcast({
         data: "HELLO"
     })
 
-    instance.send({
-        type: "broadcast",
-        channel: "*",
+    await notifications_b.broadcast({
         data: "HELLO"
     })
+
+    await instance.broadcast({
+        data: "HI"
+    });
 
     await instance.disconnect();
     await instance_b.disconnect();
 });
 
-it("[SDK] Instance::on_message should react", async () => {
-    try {
-        const connection = new Connection({
-            authorization: "dummy",
-            address: process.env.ADDRESS as string,
-            port: Number.parseInt(process.env.PORT as string),
-            secure: true,
-            debug: true,
-            secret: process.env.SECRET as string,
-        });
+it("[SDK] Instance should react", async () => {
+    const connection = new Connection({
+        authorization: "dummy",
+        address: process.env.ADDRESS as string,
+        port: Number.parseInt(process.env.PORT as string),
+        secure: true,
+        debug: true,
+        secret: process.env.SECRET as string,
+    });
 
+    try {
         const instance = await connection.connect()
     } catch (e) {
         expect(true).toBe(true)
     }
+});
+
+it("[SDK] Instance::private can throw error", async () => {
+    const connection = new Connection({
+        authorization: process.env.CLIENT_TOKEN as string,
+        address: process.env.ADDRESS as string,
+        port: Number.parseInt(process.env.PORT as string),
+        secure: true,
+        debug: true,
+        secret: "abcdef",
+    });
+
+    const instance = await connection.connect();
+    try {
+
+        const invoices = await instance.private("invoices");
+    } catch (e) {
+        console.log(e)
+        expect(true).toBe(true)
+    }
+    await instance.disconnect();
+});
+
+it("[SDK] Instance::broadcast can call error", async () => {
+    const connection = new Connection({
+        authorization: process.env.CLIENT_TOKEN as string,
+        address: process.env.ADDRESS as string,
+        port: Number.parseInt(process.env.PORT as string),
+        secure: true,
+        debug: true,
+        secret: process.env.SECRET as string,
+    });
+
+    const instance = await connection.connect();
+    try {
+        await instance.broadcast({
+            data: "HELLO"
+        })
+    } catch (e) {
+        expect(true).toBe(true)
+    }
+    await instance.disconnect();
+});
+
+it("[SDK] Instance::private can call error", async () => {
+    const connection = new Connection({
+        authorization: process.env.CLIENT_TOKEN as string,
+        address: process.env.ADDRESS as string,
+        port: Number.parseInt(process.env.PORT as string),
+        secure: true,
+        debug: true,
+        secret: process.env.SECRET as string,
+    });
+
+    const instance = await connection.connect();
+    try {
+        const channel = await instance.private("notifications");
+        await channel.broadcast({
+            data: "HELLO"
+        })
+    } catch (e) {
+        expect(true).toBe(true)
+    }
+    await instance.disconnect();
+});
+
+it("[SDK] Instance::public can call error", async () => {
+    const connection = new Connection({
+        authorization: process.env.CLIENT_TOKEN as string,
+        address: process.env.ADDRESS as string,
+        port: Number.parseInt(process.env.PORT as string),
+        secure: true,
+        debug: true,
+        secret: process.env.SECRET as string,
+    });
+
+    const instance = await connection.connect();
+    try {
+        const channel = await instance.subscribe("notifications");
+        await channel.broadcast({
+            data: "HELLO"
+        })
+    } catch (e) {
+        expect(true).toBe(true)
+    }
+    await instance.disconnect();
 });

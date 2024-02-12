@@ -24,4 +24,12 @@ export interface Channel {
     resolve: Function
     reject: Function
     on(reactor: Function): void
+    broadcast(data: Object): Promise<Object>
+}
+
+export interface Broadcast {
+    type: string
+    channel: string
+    data?: any
+    token?: string
 }
