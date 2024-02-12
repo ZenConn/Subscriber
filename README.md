@@ -25,7 +25,7 @@ const instance = await connection.connect();
 
 ```js
 try {
-    const channel = instance.subscribe("notifications");
+    const channel = await instance.subscribe("notifications");
     channel.on((message: string) => {
         console.log(message);
     })  
@@ -38,11 +38,24 @@ try {
 
 ```js
 try {
-    const channel = instance.private("notifications", "authorization_token");
+    const channel = await instance.private("notifications");
     channel.on((message: string) => {
         console.log(message);
     })  
 } catch (e: any) {
     console.log("Unauthorized");   
 }
+```
+
+#### Authorization
+
+If `secret` isn't passed as option then:
+
+```js
+const channel = "notifications";
+const id = instance.session.id;
+const input = `${instance.session.id}@private.${channel}`;
+const secret = "secret";
+const hash = Encrypt.make(secret, input);
+const channel = await instance.private(channel, hash);
 ```
