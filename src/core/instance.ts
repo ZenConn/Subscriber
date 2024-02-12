@@ -55,7 +55,7 @@ export class Instance {
             throw new Error("Connection isn't open")
         }
 
-        if (this.channels.some((item: Channel) => item.name === `name`)) {
+        if (this.channels.some((item: Channel) => item.name === name)) {
             throw new Error("Channel is already subscribed");
         }
 
@@ -120,69 +120,66 @@ export class Instance {
      */
     static async make(options: ConnectionOptions, server: ServerOptions) {
         return new Promise<Instance>((resolve, reject) => {
-            try {
-                const socket = new WebSocket(server.protocol + server.address, {
-                    headers: {
-                        Authorization: `Bearer ${options.authorization}`,
-                    }
-                })
+            const socket = new WebSocket(server.protocol + server.address, {
+                headers: {
+                    Authorization: `Bearer ${options.authorization}`,
+                }
+            })
 
-                const session = {
-                    id: ""
-                } as SessionOptions;
+            const session = {
+                id: ""
+            } as SessionOptions;
 
-                const instance = new Instance(options, server, session, socket)
+            const instance = new Instance(options, server, session, socket)
 
-                instance.socket.on("open", () => {
-                    if (options.debug) {
-                        console.log("Connection::connect OPEN")
-                    }
-                });
+            instance.socket.on("open", () => {
+                if (options.debug) {
+                    console.log("Connection::connect OPEN")
+                }
+            });
 
-                instance.socket.on("message", (message: string) => {
-                    const object = JSON.parse(message);
-                    switch (object.type) {
-                        case "accepted":
-                            if (options.debug) {
-                                console.log(`Connection::connect ACCEPTED ID=${object.data}`)
-                            }
-                            session.id = object.data;
-                            resolve(instance);
-                            break;
-                        case "subscribed":
+            instance.socket.on("message", (message: string) => {
+                const object = JSON.parse(message);
+                switch (object.type) {
+                    case "accepted":
+                        if (options.debug) {
+                            console.log(`Connection::connect ACCEPTED ID=${object.data}`)
+                        }
+                        session.id = object.data;
+                        resolve(instance);
+                        break;
+                    case "subscribed":
+                        const index = instance.channels.findIndex((item: Channel) => item.name == object.channel);
+                        const channel = instance.channels[index];
+                        if (options.debug) {
+                            console.log(`Instance::subscribe SUBSCRIBED ID=${session.id} CHANNEL=${object.channel}`)
+                        }
+                        channel.resolve(channel);
+                        break;
+                    case "event":
+                        if (object.channel == "*") {
+                            instance.reactor(object);
+                        } else {
                             const index = instance.channels.findIndex((item: Channel) => item.name == object.channel);
                             const channel = instance.channels[index];
-                            if (options.debug) {
-                                console.log(`Instance::subscribe SUBSCRIBED ID=${session.id} CHANNEL=${object.channel}`)
-                            }
-                            channel.resolve(channel);
-                            break;
-                        case "event":
-                            if (object.channel == "*") {
-                                instance.reactor(object);
-                            } else {
-                                const index = instance.channels.findIndex((item: Channel) => item.name == object.channel);
-                                const channel = instance.channels[index];
-                                if (options.debug) {
-                                    console.log(`Channel::${object.channel} RECEIVED ID=${session.id} DATA=${message.toString()}`)
-                                }
-                                channel.reactor(object);
-                            }
-                            break;
-                        default:
-                            break;
-                    }
-                })
+                            channel.reactor(object);
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            })
 
-                instance.socket.on("close", () => {
-                    if (options.debug) {
-                        console.log("Instance::disconnect OK");
-                    }
-                    instance.close();
-                })
-            } catch (e: any) {
+            instance.socket.on("error", () => {
                 reject()
-            }
+            })
+
+            instance.socket.on("close", () => {
+                if (options.debug) {
+                    console.log("Instance::disconnect OK");
+                }
+                instance.close();
+            })
         });
     }
 }
