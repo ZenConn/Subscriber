@@ -28,8 +28,14 @@ import 'dotenv/config'
         console.log("Datum:", message);
     })
 
-    const invoices = await instance.private("invoices");
-    const invoices2 = await instance.private("invoices");
+    instance.send({
+        type: "broadcast",
+        channel: "*",
+        data: "HEELLO"
+    })
+
+    // const invoices = await instance.private("invoices");
+    // const invoices2 = await instance.private("invoices");
     // invoices.on((message: Object) => {
     //     console.log("Data:", message);
     // })
