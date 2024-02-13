@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ZenPub/JavaScript.git"
+    "url": "git+https://github.com/ZenPub/JavaScript.git"
   },
   "author": "Ian Torres",
   "license": "MIT",
