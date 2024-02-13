@@ -5,7 +5,7 @@
 ### Connection
 
 ```js
-import { Connection } from "wsocket";
+import { Connection } from "@zenpub/javascript";
 
 const connection = new Connection({
         authorization: "TOKEN",

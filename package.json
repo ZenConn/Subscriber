@@ -1,14 +1,18 @@
 {
-  "name": "websockets-cl",
-  "version": "1.0.0",
+  "name": "@zenpub/javascript",
+  "version": "0.0.1",
   "description": "",
-  "main": "src/async.ts",
+  "main": "src/index.ts",
   "scripts": {
     "test": "jest --coverage",
     "build": "npx tsc",
     "watch": "ts-node-dev --respawn --transpile-only src/index.ts"
   },
-  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ZenPub/JavaScript.git"
+  },
+  "author": "Ian Torres",
   "license": "MIT",
   "dependencies": {
     "ws": "^8.16.0"
