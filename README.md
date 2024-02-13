@@ -5,7 +5,7 @@
 ### Connection
 
 ```js
-import { Connection } from "@zenpub/javascript";
+import { Connection } from "@zenpub/javascript/dist/cjs";
 
 const connection = new Connection({
         authorization: "TOKEN",
